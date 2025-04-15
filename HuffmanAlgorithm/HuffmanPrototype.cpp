@@ -10,7 +10,7 @@ using namespace std;
 struct Node
 {
     unsigned char symbol;
-    long long freq;
+    int freq;
     Node *left, *right;
 };
 
