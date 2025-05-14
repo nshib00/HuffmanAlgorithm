@@ -1,5 +1,4 @@
-#ifndef HUFFMANCODER_H
-#define HUFFMANCODER_H
+#pragma once
 
 #include <vector>
 #include <map>
@@ -15,23 +14,26 @@ struct Node {
 };
 
 struct CompressionStats {
-    long long originalSize;
-    long long compressedSize;
+    size_t originalSize;
+    size_t compressedSize;
     double compressionRatio;
 };
 
 class HuffmanCoder {
 private:
     Node* root;
+    size_t originalSize;
+    size_t compressedSize;
+
     void freeTree(Node* node);
+    Node* createHuffmanTree(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes);
+    void buildCodeTable(Node* root, std::string code, std::map<unsigned char, std::string>& codes);
+    std::vector<unsigned char> huffmanEncode(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes);
+    std::vector<unsigned char> huffmanDecode(const std::vector<unsigned char>& encoded, Node* root);
 public:
     HuffmanCoder();
     ~HuffmanCoder();
-
-    Node* createHuffmanTree(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes);
-    void buildCodeTable(Node* root, std::string code, std::map<unsigned char, std::string>& codes);
-    std::vector<unsigned char> encode(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes);
-    std::vector<unsigned char> decode(const std::vector<unsigned char>& encoded, Node* root);
+    void encode(const std::string& inputFile, const std::string& compressedFile);
+    void decode(const std::string& compressedFile, const std::string& outputFile);
+    CompressionStats getStats();
 };
-
-#endif // HUFFMANCODER_H

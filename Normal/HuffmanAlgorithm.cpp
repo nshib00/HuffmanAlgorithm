@@ -20,7 +20,7 @@ Node::Node(Node* l, Node* r)
     : symbol(0), freq(l->freq + r->freq), left(l), right(r) {
 }
 
-HuffmanCoder::HuffmanCoder() : root(nullptr) {}
+HuffmanCoder::HuffmanCoder() : root(nullptr), originalSize(0), compressedSize(0) {}
 
 HuffmanCoder::~HuffmanCoder() {
     freeTree(root);
@@ -63,7 +63,7 @@ void HuffmanCoder::buildCodeTable(Node* node, std::string code, std::map<unsigne
     buildCodeTable(node->right, code + "1", codes);
 }
 
-std::vector<unsigned char> HuffmanCoder::encode(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes) {
+std::vector<unsigned char> HuffmanCoder::huffmanEncode(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes) {
     std::string bits;
     for (unsigned char byte : data)
         bits += codes[byte];
@@ -81,7 +81,7 @@ std::vector<unsigned char> HuffmanCoder::encode(const std::vector<unsigned char>
     return out;
 }
 
-std::vector<unsigned char> HuffmanCoder::decode(const std::vector<unsigned char>& encoded, Node* root) {
+std::vector<unsigned char> HuffmanCoder::huffmanDecode(const std::vector<unsigned char>& encoded, Node* root) {
     if (encoded.empty())
         return {};
 
@@ -104,6 +104,38 @@ std::vector<unsigned char> HuffmanCoder::decode(const std::vector<unsigned char>
     return out;
 }
 
+void HuffmanCoder::encode(const string& inputFile, const string& compressedFile) {
+    // Чтение исходного файла
+    vector<unsigned char> data = Reader::loadBinaryFile(inputFile);
+    originalSize = data.size();
+
+    // Построение дерева Хаффмана и таблицы кодов
+    map<unsigned char, string> codes;
+    Node* root = createHuffmanTree(data, codes);
+
+    // Сжатие данных и сохранение сжатого файла
+    vector<unsigned char> encoded = huffmanEncode(data, codes);
+    Writer::saveCompressedFile(compressedFile, codes, encoded);
+
+    compressedSize = encoded.size();
+}
+
+void HuffmanCoder::decode(const string& compressedFile, const string& outputFile) {
+    // Загрузка сжатого файла и восстановление таблицы кодов
+    map<unsigned char, string> loadedCodes;
+    vector<unsigned char> loadedEncoded;
+    Reader::loadCompressedFile(compressedFile, loadedCodes, loadedEncoded);
+
+    // Декодирование данных и сохранение восстановленного файла
+    vector<unsigned char> decoded = huffmanDecode(loadedEncoded, root);
+    Writer::saveBinaryFile(outputFile, decoded);
+}
+
+CompressionStats HuffmanCoder::getStats() {
+    double compressionRatio = 100.0 * (1.0 - static_cast<double>(compressedSize) / originalSize);
+    return { originalSize, compressedSize, compressionRatio };
+}
+
 
 int main() {
     setlocale(LC_ALL, "ru");
@@ -115,36 +147,18 @@ int main() {
     // Создание объекта кодера
     HuffmanCoder coder;
 
-    // Чтение исходного файла
-    vector<unsigned char> data = Reader::loadBinaryFile(inputFile);
-    size_t originalSize = data.size();
+    coder.encode(inputFile, compressedFile);
+    coder.decode(compressedFile, outputFile);
 
-    // Построение дерева Хаффмана и таблицы кодов
-    map<unsigned char, string> codes;
-    Node* root = coder.createHuffmanTree(data, codes);
-
-    // Сжатие данных и сохранение сжатого файла
-    vector<unsigned char> encoded = coder.encode(data, codes);
-    Writer::saveCompressedFile(compressedFile, codes, encoded);
-
-    size_t compressedSize = encoded.size();
-    double compressionRatio = 100.0 * (1.0 - static_cast<double>(compressedSize) / originalSize);
-
-    // Загрузка сжатого файла и восстановление таблицы кодов
-    map<unsigned char, string> loadedCodes;
-    vector<unsigned char> loadedEncoded;
-    Reader::loadCompressedFile(compressedFile, loadedCodes, loadedEncoded);
-
-    // Декодирование данных и сохранение восстановленного файла
-    vector<unsigned char> decoded = coder.decode(loadedEncoded, root);
-    Writer::saveBinaryFile(outputFile, decoded);
+    CompressionStats stats = coder.getStats();
+    
 
     cout << "Файл " << inputFile << " успешно сжат и декодирован." << endl
         << "Результат кодирования: " << compressedFile << endl
         << "Результат декодирования: " << outputFile << endl
-        << "Исходный размер файла: " << originalSize << " байт" << endl
-        << "Размер после сжатия: " << compressedSize << " байт" << endl
-        << "Степень сжатия: " << compressionRatio << "%\n";
+        << "Исходный размер файла: " << stats.originalSize << " байт" << endl
+        << "Размер после сжатия: " << stats.compressedSize << " байт" << endl
+        << "Степень сжатия: " << stats.compressionRatio << "%\n";
 
     return 0;
 }
