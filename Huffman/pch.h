@@ -10,4 +10,12 @@
 // Добавьте сюда заголовочные файлы для предварительной компиляции
 #include "framework.h"
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <map>
+#include <string>
+#include <queue>
+#include <bitset>
+
 #endif //PCH_H

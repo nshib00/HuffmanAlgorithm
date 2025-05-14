@@ -1,10 +1,14 @@
+#pragma once
+#include "pch.h"
+#include "ExportDefs.h"
+
 #include <vector>
 #include <string>
 #include <map>
 
 using namespace std;
 
-class Writer {
+class HUFFMAN_API Writer {
 public:
     // Сохранение бинарного файла (например, восстановленного после декодирования)
     static void saveBinaryFile(const string& filename, const vector<unsigned char>& data);

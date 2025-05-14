@@ -1,11 +1,13 @@
 #pragma once
+#include "pch.h"
+#include "ExportDefs.h"
 
 #include <vector>
 #include <map>
 #include <string>
 
 
-struct Node {
+struct HUFFMAN_API Node {
     unsigned char symbol;
     long long freq;
     Node* left;
@@ -14,13 +16,13 @@ struct Node {
     Node(Node* l, Node* r);
 };
 
-struct CompressionStats {
+struct HUFFMAN_API CompressionStats {
     size_t originalSize;
     size_t compressedSize;
     double compressionRatio;
 };
 
-class HuffmanCoder {
+class HUFFMAN_API HuffmanCoder {
 private:
     Node* root;
     size_t originalSize;
