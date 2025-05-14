@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Prototype", "HuffmanAlgorit
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Normal", "Normal\Normal.vcxproj", "{318A24CB-F3BB-4942-87BA-F99FE10B2A6B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Huffman", "Huffman\Huffman.vcxproj", "{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{318A24CB-F3BB-4942-87BA-F99FE10B2A6B}.Release|x64.Build.0 = Release|x64
 		{318A24CB-F3BB-4942-87BA-F99FE10B2A6B}.Release|x86.ActiveCfg = Release|Win32
 		{318A24CB-F3BB-4942-87BA-F99FE10B2A6B}.Release|x86.Build.0 = Release|Win32
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Debug|x64.ActiveCfg = Debug|x64
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Debug|x64.Build.0 = Debug|x64
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Debug|x86.ActiveCfg = Debug|Win32
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Debug|x86.Build.0 = Debug|Win32
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Release|x64.ActiveCfg = Release|x64
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Release|x64.Build.0 = Release|x64
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Release|x86.ActiveCfg = Release|Win32
+		{2C8D5A28-4F2E-4E8D-AFBC-BE232DC07B3D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

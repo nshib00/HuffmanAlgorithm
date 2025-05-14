@@ -1,102 +1,109 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <queue>
-#include <bitset>
-#include <string>
+#include "HuffmanCoder.h"
 #include "Reader.h"
 #include "Writer.h"
-
-using namespace std;
-
-// Структура узла дерева Хаффмана
-struct Node {
-    unsigned char symbol;
-    long long freq;
-    Node* left;
-    Node* right;
-    Node(unsigned char s, long long f) : symbol(s), freq(f), left(NULL), right(NULL) {}
-    Node(Node* l, Node* r) : symbol(0), freq(l->freq + r->freq), left(l), right(r) {}
-};
+#include <queue>
+#include <bitset>
+#include <locale>
+#include <iostream>
 
 struct Compare {
-    bool operator()(Node* a, Node* b) { return a->freq > b->freq; }
+    bool operator()(Node* a, Node* b) {
+        return a->freq > b->freq;
+    }
 };
 
-// Рекурсивная функция построения таблицы кодов по дереву Хаффмана
-void buildCodeTable(Node* root, string code, map<unsigned char, string>& codes) {
-    if (!root) return;
-    if (!root->left && !root->right)
-        codes[root->symbol] = code;
-    buildCodeTable(root->left, code + "0", codes);
-    buildCodeTable(root->right, code + "1", codes);
+Node::Node(unsigned char s, long long f)
+    : symbol(s), freq(f), left(nullptr), right(nullptr) {
 }
 
-// Создание дерева Хаффмана и построение таблицы кодов
-Node* createHuffmanTree(const vector<unsigned char>& data, map<unsigned char, string>& codes) {
-    map<unsigned char, long long> freq;
-    for (size_t i = 0; i < data.size(); ++i)
-        freq[data[i]]++;
+Node::Node(Node* l, Node* r)
+    : symbol(0), freq(l->freq + r->freq), left(l), right(r) {
+}
 
-    priority_queue<Node*, vector<Node*>, Compare> pq;
-    for (map<unsigned char, long long>::const_iterator it = freq.begin(); it != freq.end(); ++it)
-        pq.push(new Node(it->first, it->second));
+HuffmanCoder::HuffmanCoder() : root(nullptr) {}
+
+HuffmanCoder::~HuffmanCoder() {
+    freeTree(root);
+}
+
+void HuffmanCoder::freeTree(Node* node) {
+    if (!node) return;
+    freeTree(node->left);
+    freeTree(node->right);
+    delete node;
+}
+
+Node* HuffmanCoder::createHuffmanTree(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes) {
+    std::map<unsigned char, long long> freq;
+    for (unsigned char byte : data)
+        freq[byte]++;
+
+    std::priority_queue<Node*, std::vector<Node*>, Compare> pq;
+    for (const auto& it : freq)
+        pq.push(new Node(it.first, it.second));
 
     while (pq.size() > 1) {
-        Node* l = pq.top();
-        pq.pop();
-        Node* r = pq.top();
-        pq.pop();
+        Node* l = pq.top(); pq.pop();
+        Node* r = pq.top(); pq.pop();
         pq.push(new Node(l, r));
     }
 
-    Node* root = pq.top();
+    root = pq.top();
     buildCodeTable(root, "", codes);
     return root;
 }
 
-// Функция сжатия данных: формирует битовую строку, дополняет до полного байта и преобразует в вектор байт
-vector<unsigned char> encode(const vector<unsigned char>& data, map<unsigned char, string>& codes) {
-    string bits;
-    for (size_t i = 0; i < data.size(); ++i)
-        bits += codes[data[i]];
+void HuffmanCoder::buildCodeTable(Node* node, std::string code, std::map<unsigned char, std::string>& codes) {
+    if (!node) return;
+    if (!node->left && !node->right) {
+        codes[node->symbol] = code;
+        return;
+    }
+    buildCodeTable(node->left, code + "0", codes);
+    buildCodeTable(node->right, code + "1", codes);
+}
+
+std::vector<unsigned char> HuffmanCoder::encode(const std::vector<unsigned char>& data, std::map<unsigned char, std::string>& codes) {
+    std::string bits;
+    for (unsigned char byte : data)
+        bits += codes[byte];
 
     int pad = (8 - bits.size() % 8) % 8;
     bits.append(pad, '0');
 
-    vector<unsigned char> out;
+    std::vector<unsigned char> out;
     out.push_back(static_cast<unsigned char>(pad));
     for (size_t i = 0; i < bits.size(); i += 8) {
-        bitset<8> bs(bits.substr(i, 8));
+        std::bitset<8> bs(bits.substr(i, 8));
         out.push_back(static_cast<unsigned char>(bs.to_ulong()));
     }
+
     return out;
 }
 
-// Функция восстановления данных: декодирует битовую строку в исходные байты, используя дерево Хаффмана
-vector<unsigned char> decode(const vector<unsigned char>& encoded, Node* root) {
+std::vector<unsigned char> HuffmanCoder::decode(const std::vector<unsigned char>& encoded, Node* root) {
     if (encoded.empty())
-        return vector<unsigned char>();
+        return {};
 
     int pad = encoded[0];
-    string bits;
+    std::string bits;
     for (size_t i = 1; i < encoded.size(); ++i)
-        bits += bitset<8>(encoded[i]).to_string();
+        bits += std::bitset<8>(encoded[i]).to_string();
 
     bits.resize(bits.size() - pad);
 
-    vector<unsigned char> out;
-    Node* cur = root;
-    for (size_t i = 0; i < bits.size(); ++i) {
-        cur = (bits[i] == '0') ? cur->left : cur->right;
-        if (!cur->left && !cur->right) {
-            out.push_back(cur->symbol);
-            cur = root;
+    std::vector<unsigned char> out;
+    Node* current = root;
+    for (char bit : bits) {
+        current = (bit == '0') ? current->left : current->right;
+        if (!current->left && !current->right) {
+            out.push_back(current->symbol);
+            current = root;
         }
     }
     return out;
 }
+
 
 int main() {
     setlocale(LC_ALL, "ru");
@@ -105,16 +112,19 @@ int main() {
     string compressedFile = "../files/input.hfmn";
     string outputFile = "../files/output.txt";
 
+    // Создание объекта кодера
+    HuffmanCoder coder;
+
     // Чтение исходного файла
     vector<unsigned char> data = Reader::loadBinaryFile(inputFile);
     size_t originalSize = data.size();
 
     // Построение дерева Хаффмана и таблицы кодов
     map<unsigned char, string> codes;
-    Node* root = createHuffmanTree(data, codes);
+    Node* root = coder.createHuffmanTree(data, codes);
 
     // Сжатие данных и сохранение сжатого файла
-    vector<unsigned char> encoded = encode(data, codes);
+    vector<unsigned char> encoded = coder.encode(data, codes);
     Writer::saveCompressedFile(compressedFile, codes, encoded);
 
     size_t compressedSize = encoded.size();
@@ -126,7 +136,7 @@ int main() {
     Reader::loadCompressedFile(compressedFile, loadedCodes, loadedEncoded);
 
     // Декодирование данных и сохранение восстановленного файла
-    vector<unsigned char> decoded = decode(loadedEncoded, root);
+    vector<unsigned char> decoded = coder.decode(loadedEncoded, root);
     Writer::saveBinaryFile(outputFile, decoded);
 
     cout << "Файл " << inputFile << " успешно сжат и декодирован." << endl
